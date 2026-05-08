@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -52,17 +51,11 @@ func (u *User) CreateUser(createUserReq *model.CreateUserReq, claims *utils.User
 	user.Timezone = createUserReq.Timezone
 	user.DefaultLanguage = createUserReq.DefaultLanguage
 
-	// 其他信息
-	if createUserReq.AdditionalInfo == nil {
-		user.AdditionalInfo = StringPtr("{}")
-	} else {
-		var js map[string]interface{}
-		if err := json.Unmarshal(*createUserReq.AdditionalInfo, &js); err != nil {
-			return errcode.WithData(errcode.CodeSystemError, map[string]interface{}{
-				"error": fmt.Sprintf("Failed to unmarshal AdditionalInfo: %v", err),
-			})
-		}
+	// 其他信息：直接存储，不做格式校验
+	if createUserReq.AdditionalInfo != nil {
 		user.AdditionalInfo = StringPtr(string(*createUserReq.AdditionalInfo))
+	} else {
+		user.AdditionalInfo = StringPtr("{}")
 	}
 	// 判断用户权限
 	switch claims.Authority {
