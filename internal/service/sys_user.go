@@ -867,10 +867,15 @@ func (u *User) GetTenantSetupState() (*model.TenantSetupStateRsp, error) {
 		return nil, err
 	}
 
-	baseURL := strings.TrimRight(viper.GetString("market.base_url"), "/")
+	// 如果市场集成被禁用，返回空的 market 相关字段
+	marketEnabled := !viper.IsSet("market.enabled") || viper.GetBool("market.enabled")
+	baseURL := ""
 	marketRegisterURL := ""
-	if baseURL != "" {
-		marketRegisterURL = baseURL + "/register"
+	if marketEnabled {
+		baseURL = strings.TrimRight(viper.GetString("market.base_url"), "/")
+		if baseURL != "" {
+			marketRegisterURL = baseURL + "/register"
+		}
 	}
 
 	entry := "login"

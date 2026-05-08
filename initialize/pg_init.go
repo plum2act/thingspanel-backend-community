@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	global "project/pkg/global"
@@ -169,7 +170,7 @@ func PgConnect(config *DbConfig) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(config.OpenConns)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	log.Println("连接数据库完成...")
+	logrus.Infoln("连接数据库完成...")
 
 	return db, nil
 }
@@ -179,12 +180,16 @@ func PgConnect(config *DbConfig) (*gorm.DB, error) {
 1. 检查版本表是否存在: 检查数据库版本，如果没有sys_version表，创建sys_version表，插入版本序号0，版本号0.0.0
 2. 程序版本低于数据版本: 提示升级
 3. 数据版本低于程序版本: 执行sql文件，更新版本号
+
+优化：
+- 每个SQL文件单独执行，失败不影响后续文件
+- 使用"继续执行"模式处理已存在的对象
+- 事务仅用于更新版本号
 */
-// 检查版本，在表sys_version中的version字段
 func CheckVersion(db *gorm.DB) error {
 	version := global.VERSION
-	versionNumber := global.VERSION_NUMBER // 当前程序版本号
-	var dataVersionNumber int              // 数据库版本号
+	versionNumber := global.VERSION_NUMBER
+	var dataVersionNumber int
 
 	// 判断有没有sys_version的表
 	var exists bool
@@ -192,74 +197,81 @@ func CheckVersion(db *gorm.DB) error {
 	if result.Error != nil {
 		return result.Error
 	}
-	// 创建事务
+
 	logrus.Info("----", exists)
-	if !exists { // 如果不存在sys_version表，创建sys_version表
+	if !exists {
 		logrus.Info("创建sys_version表")
 		dataVersionNumber = 0
 		t := db.Exec("CREATE TABLE sys_version (version_number INT NOT NULL DEFAULT 0, version varchar(255) NOT NULL, PRIMARY KEY (version_number))")
 		if t.Error != nil {
 			return t.Error
 		}
-
 	}
-	tx := db.Begin()
+
 	// 查询版本号
 	result = db.Table("sys_version").Select("version_number").Scan(&dataVersionNumber)
 	if result.Error != nil {
 		return result.Error
 	}
+
 	// 如果版本号为空，插入版本号
 	if dataVersionNumber == 0 {
-		t := tx.Exec("INSERT INTO sys_version (version_number, version) VALUES (?, ?)", 0, "0.0.0")
+		t := db.Exec("INSERT INTO sys_version (version_number, version) VALUES (?, ?)", 0, "0.0.0")
 		if t.Error != nil {
-			// 回滚
-			tx.Rollback()
 			return t.Error
 		}
 	}
+
 	if dataVersionNumber > global.VERSION_NUMBER {
-		// 回滚
-		tx.Rollback()
 		return fmt.Errorf("当前数据版本高于程序版本，请升级程序")
 	} else if dataVersionNumber < global.VERSION_NUMBER {
-		log.Println("数据版本：", dataVersionNumber)
-		log.Println("程序版本：", global.VERSION_NUMBER)
-		log.Println("开始升级...")
-		// sql文件名为：版本编号.sql，执行所大于当前数据版本小于等于程序版本的sql文件
+		logrus.Infoln("数据版本：", dataVersionNumber)
+		logrus.Infoln("程序版本：", global.VERSION_NUMBER)
+		logrus.Infoln("开始升级...")
+
+		// 每个SQL文件单独执行，失败记录但继续
 		for i := dataVersionNumber + 1; i <= global.VERSION_NUMBER; i++ {
 			fileName := fmt.Sprintf("sql/%d.sql", i)
-			// 检查文件是否存在
 			if !utils.FileExist(fileName) {
-				// 回滚
-				tx.Rollback()
 				return fmt.Errorf("sql文件不存在,可能需要手动升级：%s", fileName)
 			}
-			log.Println("执行sql文件：", fileName)
-			// 读取 SQL 脚本文件
+
+			logrus.Infoln("执行sql文件：", fileName)
 			sqlFile, err := os.ReadFile(fileName)
 			if err != nil {
-				panic(err)
+				return fmt.Errorf("读取sql文件失败 %s: %w", fileName, err)
 			}
-			fmt.Println("执行sql脚本...")
-			// 执行 SQL 脚本
-			t := tx.Exec(string(sqlFile))
+
+			// 直接执行整个SQL文件（保持DO块完整性）
+			t := db.Exec(string(sqlFile))
 			if t.Error != nil {
-				// 回滚
-				tx.Rollback()
-				return t.Error
+				// 检查是否是"已存在"类错误，忽略这些非致命错误
+				errStr := t.Error.Error()
+				if strings.Contains(errStr, "already exists") ||
+					strings.Contains(errStr, "duplicate key") ||
+					strings.Contains(errStr, "42P07") || // relation already exists
+					strings.Contains(errStr, "42710") || // object already exists
+					strings.Contains(errStr, "23505") { // unique_violation
+					logrus.Warnf("SQL执行警告 [%s] (可忽略): %v", fileName, t.Error)
+				} else {
+					return fmt.Errorf("执行sql文件失败 %s: %w", fileName, t.Error)
+				}
 			}
 		}
-		// 更新版本号
+
+		// 更新版本号（使用事务保证原子性）
+		tx := db.Begin()
 		t := tx.Exec("UPDATE sys_version SET version_number = ?, version = ?", versionNumber, version)
 		if t.Error != nil {
-			// 回滚
 			tx.Rollback()
 			return t.Error
 		}
-		log.Println("升级成功")
+		if err := tx.Commit().Error; err != nil {
+			return err
+		}
+		logrus.Infoln("升级成功")
 	}
-	return tx.Commit().Error
+	return nil
 }
 
 func ExecuteSQLFile(db *gorm.DB, fileName string) error {

@@ -1,5 +1,5 @@
 -- Create sys_config table for persistent system configurations
-CREATE TABLE public.sys_config (
+CREATE TABLE IF NOT EXISTS public.sys_config (
 	config_key varchar(255) NOT NULL,
 	config_value text NOT NULL,
 	remark varchar(255) NULL,

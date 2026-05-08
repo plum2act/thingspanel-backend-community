@@ -15,7 +15,7 @@ ALTER COLUMN "v0" TYPE varchar(200) COLLATE "pg_catalog"."default",
 
 -- DROP TABLE public.device_model_custom_control;
 
-CREATE TABLE public.device_model_custom_control (
+CREATE TABLE IF NOT EXISTS public.device_model_custom_control (
 	id varchar(36) NOT NULL, -- id
 	device_template_id varchar(36) NOT NULL, -- 设备模版ID
 	"name" varchar(255) NOT NULL, -- 名称
@@ -53,7 +53,7 @@ COMMENT ON COLUMN public.device_model_custom_control.remark IS '备注';
 
 -- DROP TABLE public.expected_datas;
 
-CREATE TABLE public.expected_datas (
+CREATE TABLE IF NOT EXISTS public.expected_datas (
 	id varchar(36) NOT NULL, -- 指令唯一标识符(UUID)
 	device_id varchar(36) NOT NULL, -- 目标设备ID
 	send_type varchar(50) NOT NULL, -- 指令类型(e.g., telemetry, attribute, command)

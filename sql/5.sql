@@ -1,6 +1,6 @@
 -- ✅2025/2/11 v1.1.5
 
-CREATE TABLE public.open_api_keys (
+CREATE TABLE IF NOT EXISTS public.open_api_keys (
 	id varchar(36) NOT NULL,
 	tenant_id varchar(36) NOT NULL,
 	api_key varchar(200) NOT NULL,

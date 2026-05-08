@@ -1,10 +1,13 @@
+-- 先创建 TimescaleDB 扩展（如果不存在）
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
 -- public.alarm_config definition
 
 -- Drop table
 
 -- DROP TABLE public.alarm_config;
 
-CREATE TABLE public.alarm_config (
+CREATE TABLE IF NOT EXISTS public.alarm_config (
 	id varchar(36) NOT NULL,
 	"name" varchar(255) NOT NULL, -- 告警名称
 	description varchar(255) NULL, -- 告警描述
@@ -34,7 +37,7 @@ COMMENT ON COLUMN public.alarm_config.enabled IS '是否启用Y-启用N-停止';
 
 -- DROP TABLE public.alarm_history;
 
-CREATE TABLE public.alarm_history (
+CREATE TABLE IF NOT EXISTS public.alarm_history (
 	id varchar(36) NOT NULL,
 	alarm_config_id varchar(36) NOT NULL,
 	group_id varchar(36) NOT NULL,
@@ -67,7 +70,7 @@ COMMENT ON COLUMN public.alarm_history.alarm_device_list IS '触发设备id';
 
 -- DROP TABLE public.boards;
 
-CREATE TABLE public.boards (
+CREATE TABLE IF NOT EXISTS public.boards (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(255) NOT NULL, -- 看板名称
 	config json NULL DEFAULT '{}'::json, -- 看板配置
@@ -99,7 +102,7 @@ COMMENT ON COLUMN public.boards.menu_flag IS '菜单标志默认N，Y';
 
 -- DROP TABLE public.data_policy;
 
-CREATE TABLE public.data_policy (
+CREATE TABLE IF NOT EXISTS public.data_policy (
 	id varchar(36) NOT NULL, -- Id
 	data_type varchar(1) NOT NULL, -- 清理类型:1-设备数据、2-操作日志
 	retention_days int4 NOT NULL, -- 数据保留时间（天）
@@ -127,7 +130,7 @@ COMMENT ON COLUMN public.data_policy.remark IS '备注';
 
 -- DROP TABLE public.device_model_custom_commands;
 
-CREATE TABLE public.device_model_custom_commands (
+CREATE TABLE IF NOT EXISTS public.device_model_custom_commands (
 	id varchar(36) NOT NULL, -- id
 	device_template_id varchar(36) NOT NULL, -- 设备模板id
 	buttom_name varchar(255) NOT NULL, -- 按钮名称
@@ -158,7 +161,7 @@ COMMENT ON COLUMN public.device_model_custom_commands.remark IS '备注';
 
 -- DROP TABLE public.device_templates;
 
-CREATE TABLE public.device_templates (
+CREATE TABLE IF NOT EXISTS public.device_templates (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(255) NOT NULL, -- 模板名称
 	author varchar(36) NULL DEFAULT ''::character varying, -- 作者
@@ -197,7 +200,7 @@ COMMENT ON COLUMN public.device_templates."path" IS '图片路径';
 
 -- DROP TABLE public.device_user_logs;
 
-CREATE TABLE public.device_user_logs (
+CREATE TABLE IF NOT EXISTS public.device_user_logs (
 	id varchar(36) NOT NULL,
 	device_nums int4 NOT NULL DEFAULT 0,
 	device_on int4 NOT NULL DEFAULT 0,
@@ -217,7 +220,7 @@ COMMENT ON COLUMN public.device_user_logs.tenant_id IS '租户 id';
 
 -- DROP TABLE public."groups";
 
-CREATE TABLE public."groups" (
+CREATE TABLE IF NOT EXISTS public."groups" (
 	id varchar(36) NOT NULL,
 	parent_id varchar(36) NULL DEFAULT 0, -- 默认0是父分组
 	tier int4 NOT NULL DEFAULT 1, -- 层级 从1开始
@@ -247,7 +250,7 @@ COMMENT ON COLUMN public."groups".tenant_id IS '租户id';
 
 -- DROP TABLE public.logo;
 
-CREATE TABLE public.logo (
+CREATE TABLE IF NOT EXISTS public.logo (
 	id varchar(36) NOT NULL, -- Id
 	system_name varchar(99) NOT NULL, -- 系统名称
 	logo_cache varchar(255) NOT NULL, -- 站标Logo
@@ -274,7 +277,7 @@ COMMENT ON COLUMN public.logo.home_background IS '首页背景';
 
 -- DROP TABLE public.notification_groups;
 
-CREATE TABLE public.notification_groups (
+CREATE TABLE IF NOT EXISTS public.notification_groups (
 	id varchar(36) NOT NULL,
 	"name" varchar(99) NOT NULL, -- 名称
 	notification_type varchar(25) NOT NULL, -- 通知类型MEMBER-成员通知 EMAIL-邮箱通知 SME-短信通知 VOICE-语音通知 WEBHOOK-webhook
@@ -307,7 +310,7 @@ COMMENT ON COLUMN public.notification_groups.remark IS '备注';
 
 -- DROP TABLE public.notification_histories;
 
-CREATE TABLE public.notification_histories (
+CREATE TABLE IF NOT EXISTS public.notification_histories (
 	id varchar(36) NOT NULL,
 	send_time timestamptz(6) NOT NULL, -- 发送时间
 	send_content text NULL, -- 发送内容
@@ -336,7 +339,7 @@ COMMENT ON COLUMN public.notification_histories.remark IS '备注';
 
 -- DROP TABLE public.notification_services_config;
 
-CREATE TABLE public.notification_services_config (
+CREATE TABLE IF NOT EXISTS public.notification_services_config (
 	id varchar(36) NOT NULL,
 	config json NULL, -- 通知配置
 	notice_type varchar(36) NOT NULL, -- 通知类型EMAIL-邮箱配置 SME-短信配置
@@ -358,7 +361,7 @@ COMMENT ON COLUMN public.notification_services_config.status IS '状态 OPEN-开
 
 -- DROP TABLE public.operation_logs;
 
-CREATE TABLE public.operation_logs (
+CREATE TABLE IF NOT EXISTS public.operation_logs (
 	id varchar(36) NOT NULL, -- Id
 	ip varchar(36) NOT NULL, -- 请求IP
 	"path" varchar(2000) NULL, -- 请求url
@@ -393,7 +396,7 @@ COMMENT ON COLUMN public.operation_logs.tenant_id IS '租户id';
 
 -- DROP TABLE public.ota_upgrade_packages;
 
-CREATE TABLE public.ota_upgrade_packages (
+CREATE TABLE IF NOT EXISTS public.ota_upgrade_packages (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(200) NOT NULL, -- 升级包名称
 	"version" varchar(36) NOT NULL, -- 升级包版本号
@@ -438,7 +441,7 @@ COMMENT ON COLUMN public.ota_upgrade_packages.signature IS '升级包签名';
 
 -- DROP TABLE public.ota_upgrade_tasks;
 
-CREATE TABLE public.ota_upgrade_tasks (
+CREATE TABLE IF NOT EXISTS public.ota_upgrade_tasks (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(200) NOT NULL, -- 任务名称
 	ota_upgrade_package_id varchar(36) NOT NULL, -- 升级包id（外键，关联删除）
@@ -464,7 +467,7 @@ COMMENT ON COLUMN public.ota_upgrade_tasks.remark IS '备注';
 
 -- DROP TABLE public.protocol_plugins;
 
-CREATE TABLE public.protocol_plugins (
+CREATE TABLE IF NOT EXISTS public.protocol_plugins (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(36) NOT NULL, -- 插件名称
 	device_type int2 NOT NULL DEFAULT 1, -- 接入设备类型 (1-直连设备 2-网关设备 默认直连设备)
@@ -502,7 +505,7 @@ COMMENT ON COLUMN public.protocol_plugins.remark IS '备注';
 
 -- DROP TABLE public.roles;
 
-CREATE TABLE public.roles (
+CREATE TABLE IF NOT EXISTS public.roles (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(99) NOT NULL, -- 名称
 	description varchar(255) NULL, -- 描述
@@ -528,7 +531,7 @@ COMMENT ON COLUMN public.roles.tenant_id IS '租户id';
 
 -- DROP TABLE public.scene_automations;
 
-CREATE TABLE public.scene_automations (
+CREATE TABLE IF NOT EXISTS public.scene_automations (
 	id varchar(36) NOT NULL, -- 联动
 	"name" varchar(255) NOT NULL, -- 名称
 	description varchar(255) NULL, -- 描述
@@ -561,7 +564,7 @@ COMMENT ON COLUMN public.scene_automations.updated_at IS '更新时间';
 
 -- DROP TABLE public.scene_info;
 
-CREATE TABLE public.scene_info (
+CREATE TABLE IF NOT EXISTS public.scene_info (
 	id varchar(36) NOT NULL,
 	"name" varchar(255) NOT NULL, -- 名称
 	description varchar(255) NULL, -- 描述
@@ -590,7 +593,7 @@ COMMENT ON COLUMN public.scene_info.updated_at IS '更新时间';
 
 -- DROP TABLE public.sys_dict;
 
-CREATE TABLE public.sys_dict (
+CREATE TABLE IF NOT EXISTS public.sys_dict (
 	id varchar(36) NOT NULL, -- 主键ID
 	dict_code varchar(36) NOT NULL, -- 字典标识符
 	dict_value varchar(255) NOT NULL, -- 字典值
@@ -619,7 +622,7 @@ COMMENT ON CONSTRAINT sys_dict_dict_code_dict_value_key ON public.sys_dict IS 'd
 
 -- DROP TABLE public.sys_function;
 
-CREATE TABLE public.sys_function (
+CREATE TABLE IF NOT EXISTS public.sys_function (
 	id varchar(36) NOT NULL, -- id
 	"name" varchar(50) NOT NULL, -- 功能名称
 	enable_flag varchar(20) NOT NULL, -- 启用标志 enable-启用 disable-禁用
@@ -643,7 +646,7 @@ COMMENT ON COLUMN public.sys_function.remark IS '备注';
 
 -- DROP TABLE public.sys_ui_elements;
 
-CREATE TABLE public.sys_ui_elements (
+CREATE TABLE IF NOT EXISTS public.sys_ui_elements (
 	id varchar(36) NOT NULL, -- 主键ID
 	parent_id varchar(36) NOT NULL, -- 父元素id
 	element_code varchar(100) NOT NULL, -- 元素标识符
@@ -681,7 +684,7 @@ COMMENT ON COLUMN public.sys_ui_elements.multilingual IS '多语言标识符';
 
 -- DROP TABLE public.telemetry_current_datas;
 
-CREATE TABLE public.telemetry_current_datas (
+CREATE TABLE IF NOT EXISTS public.telemetry_current_datas (
 	device_id varchar(36) NOT NULL, -- 设备ID
 	"key" varchar(255) NOT NULL, -- 数据标识符
 	ts timestamptz(6) NOT NULL, -- 上报时间
@@ -691,7 +694,7 @@ CREATE TABLE public.telemetry_current_datas (
 	tenant_id varchar(36) NULL,
 	CONSTRAINT telemetry_current_datas_unique UNIQUE (device_id, key)
 );
-CREATE INDEX telemetry_datas_ts_idx_copy1 ON public.telemetry_current_datas USING btree (ts DESC);
+CREATE INDEX IF NOT EXISTS telemetry_datas_ts_idx_copy1 ON public.telemetry_current_datas USING btree (ts DESC);
 
 -- Column comments
 
@@ -706,7 +709,7 @@ COMMENT ON COLUMN public.telemetry_current_datas.ts IS '上报时间';
 
 -- DROP TABLE public.telemetry_datas;
 
-CREATE TABLE public.telemetry_datas (
+CREATE TABLE IF NOT EXISTS public.telemetry_datas (
 	device_id varchar(36) NOT NULL, -- 设备ID
 	"key" varchar(255) NOT NULL, -- 数据标识符
 	ts int8 NOT NULL, -- 上报时间
@@ -716,7 +719,7 @@ CREATE TABLE public.telemetry_datas (
 	tenant_id varchar(36) NULL,
 	CONSTRAINT telemetry_datas_device_id_key_ts_key UNIQUE (device_id, key, ts)
 );
-CREATE INDEX telemetry_datas_ts_idx ON public.telemetry_datas USING btree (ts DESC);
+CREATE INDEX IF NOT EXISTS telemetry_datas_ts_idx ON public.telemetry_datas USING btree (ts DESC);
 
 -- Column comments
 
@@ -727,7 +730,19 @@ COMMENT ON COLUMN public.telemetry_datas.ts IS '上报时间';
 -- Table Triggers
 
 --24小时分区
-SELECT create_hypertable('telemetry_datas', 'ts',chunk_time_interval => 86400000000);
+-- 先创建 TimescaleDB 扩展（如果不存在）
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+-- 将表转换为 hypertable（仅当还不是 hypertable 时）
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM timescaledb_information.hypertables
+    WHERE hypertable_name = 'telemetry_datas'
+  ) THEN
+    PERFORM create_hypertable('telemetry_datas', 'ts', chunk_time_interval => 86400000000);
+  END IF;
+END
+$$;
 
 -- public.users definition
 
@@ -735,7 +750,7 @@ SELECT create_hypertable('telemetry_datas', 'ts',chunk_time_interval => 86400000
 
 -- DROP TABLE public.users;
 
-CREATE TABLE public.users (
+CREATE TABLE IF NOT EXISTS public.users (
 	id varchar(36) NOT NULL,
 	"name" varchar(255) NULL,
 	phone_number varchar(50) NOT NULL,
@@ -765,7 +780,7 @@ COMMENT ON COLUMN public.users.authority IS '权限类型 TENANT_ADMIN-租户管
 
 -- DROP TABLE public.vis_dashboard;
 
-CREATE TABLE public.vis_dashboard (
+CREATE TABLE IF NOT EXISTS public.vis_dashboard (
 	id varchar(36) NOT NULL,
 	relation_id varchar(36) NULL,
 	json_data json NULL DEFAULT '{}'::json,
@@ -791,7 +806,7 @@ COMMENT ON COLUMN public.vis_dashboard.share_id IS '分享id';
 
 -- DROP TABLE public.vis_files;
 
-CREATE TABLE public.vis_files (
+CREATE TABLE IF NOT EXISTS public.vis_files (
 	id varchar(36) NOT NULL,
 	vis_plugin_id varchar(36) NOT NULL, -- 可视化插件id
 	file_name varchar(150) NULL, -- 名称
@@ -817,7 +832,7 @@ COMMENT ON COLUMN public.vis_files.file_size IS '文件大小';
 
 -- DROP TABLE public.vis_plugin;
 
-CREATE TABLE public.vis_plugin (
+CREATE TABLE IF NOT EXISTS public.vis_plugin (
 	id varchar(36) NOT NULL,
 	tenant_id varchar(36) NOT NULL, -- 租户id
 	plugin_name varchar(150) NOT NULL, -- 可视化插件名称
@@ -841,7 +856,7 @@ COMMENT ON COLUMN public.vis_plugin.plugin_description IS '插件描述';
 
 -- DROP TABLE public.action_info;
 
-CREATE TABLE public.action_info (
+CREATE TABLE IF NOT EXISTS public.action_info (
 	id varchar(36) NOT NULL,
 	scene_automation_id varchar(36) NOT NULL, -- 场景联动ID（外键-关联删除）
 	action_target varchar(255) NULL, -- 动作目标id设备id、场景id、告警id；如果条件是单类设备，这里为空
@@ -870,7 +885,7 @@ COMMENT ON COLUMN public.action_info.action_value IS '目标值';
 
 -- DROP TABLE public.alarm_info;
 
-CREATE TABLE public.alarm_info (
+CREATE TABLE IF NOT EXISTS public.alarm_info (
 	id varchar(36) NOT NULL,
 	alarm_config_id varchar(36) NOT NULL, -- 告警配置id
 	"name" varchar(255) NOT NULL, -- 告警名称
@@ -906,7 +921,7 @@ COMMENT ON COLUMN public.alarm_info.alarm_level IS '告警级别L M H';
 
 -- DROP TABLE public.device_configs;
 
-CREATE TABLE public.device_configs (
+CREATE TABLE IF NOT EXISTS public.device_configs (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(99) NOT NULL, -- 名称
 	device_template_id varchar(36) NULL, -- 设备模板id
@@ -951,7 +966,7 @@ COMMENT ON COLUMN public.device_configs.other_config IS '其他配置';
 
 -- DROP TABLE public.device_model_attributes;
 
-CREATE TABLE public.device_model_attributes (
+CREATE TABLE IF NOT EXISTS public.device_model_attributes (
 	id varchar(36) NOT NULL, -- id
 	device_template_id varchar(36) NOT NULL, -- 设备模板id
 	data_name varchar(255) NULL, -- 数据名称
@@ -992,7 +1007,7 @@ COMMENT ON COLUMN public.device_model_attributes.remark IS '备注';
 
 -- DROP TABLE public.device_model_commands;
 
-CREATE TABLE public.device_model_commands (
+CREATE TABLE IF NOT EXISTS public.device_model_commands (
 	id varchar(36) NOT NULL, -- id
 	device_template_id varchar(36) NOT NULL, -- 设备模板id
 	data_name varchar(255) NULL, -- 数据名称
@@ -1029,7 +1044,7 @@ COMMENT ON COLUMN public.device_model_commands.remark IS '备注';
 
 -- DROP TABLE public.device_model_events;
 
-CREATE TABLE public.device_model_events (
+CREATE TABLE IF NOT EXISTS public.device_model_events (
 	id varchar(36) NOT NULL, -- id
 	device_template_id varchar(36) NOT NULL, -- 设备模板id
 	data_name varchar(255) NULL, -- 数据名称
@@ -1066,7 +1081,7 @@ COMMENT ON COLUMN public.device_model_events.remark IS '备注';
 
 -- DROP TABLE public.device_model_telemetry;
 
-CREATE TABLE public.device_model_telemetry (
+CREATE TABLE IF NOT EXISTS public.device_model_telemetry (
 	id varchar(36) NOT NULL, -- id
 	device_template_id varchar(36) NOT NULL, -- 设备模板id
 	data_name varchar(255) NULL, -- 数据名称
@@ -1107,7 +1122,7 @@ COMMENT ON COLUMN public.device_model_telemetry.remark IS '备注';
 
 -- DROP TABLE public.device_trigger_condition;
 
-CREATE TABLE public.device_trigger_condition (
+CREATE TABLE IF NOT EXISTS public.device_trigger_condition (
 	id varchar(36) NOT NULL, -- Id
 	scene_automation_id varchar(36) NOT NULL, -- 场景联动ID（外键-关联删除）
 	enabled varchar(10) NOT NULL, -- 是否启用
@@ -1145,7 +1160,7 @@ COMMENT ON COLUMN public.device_trigger_condition.tenant_id IS '租户ID';
 
 -- DROP TABLE public.one_time_tasks;
 
-CREATE TABLE public.one_time_tasks (
+CREATE TABLE IF NOT EXISTS public.one_time_tasks (
 	id varchar(36) NOT NULL,
 	scene_automation_id varchar(36) NOT NULL, -- 场景联动ID（外键-关联删除）
 	execution_time timestamptz(6) NOT NULL, -- 执行时间
@@ -1172,7 +1187,7 @@ COMMENT ON COLUMN public.one_time_tasks.expiration_time IS '过期时间（默�
 
 -- DROP TABLE public.periodic_tasks;
 
-CREATE TABLE public.periodic_tasks (
+CREATE TABLE IF NOT EXISTS public.periodic_tasks (
 	id varchar(36) NOT NULL,
 	scene_automation_id varchar(36) NOT NULL, -- 场景联动ID（外键-关联删除）
 	task_type varchar(255) NOT NULL, -- 任务类型 HOUR DAY WEEK MONTH CRON
@@ -1200,7 +1215,7 @@ COMMENT ON COLUMN public.periodic_tasks.expiration_time IS '过期时间（默�
 
 -- DROP TABLE public.products;
 
-CREATE TABLE public.products (
+CREATE TABLE IF NOT EXISTS public.products (
 	id varchar(36) NOT NULL, -- uuid
 	"name" varchar(255) NOT NULL, -- 产品名称
 	description varchar(255) NULL, -- 描述
@@ -1236,7 +1251,7 @@ COMMENT ON COLUMN public.products.tenant_id IS '租户id';
 
 -- DROP TABLE public.scene_action_info;
 
-CREATE TABLE public.scene_action_info (
+CREATE TABLE IF NOT EXISTS public.scene_action_info (
 	id varchar(36) NOT NULL,
 	scene_id varchar(36) NOT NULL, -- 场景id（关联删除）
 	action_target varchar(36) NOT NULL, -- 动作目标id设备id、设备配置id，场景id、告警id
@@ -1270,7 +1285,7 @@ COMMENT ON COLUMN public.scene_action_info.updated_at IS '更新时间';
 
 -- DROP TABLE public.scene_automation_log;
 
-CREATE TABLE public.scene_automation_log (
+CREATE TABLE IF NOT EXISTS public.scene_automation_log (
 	scene_automation_id varchar(36) NOT NULL, -- 场景联动ID（外键-关联删除）
 	executed_at timestamptz(6) NOT NULL, -- 执行时间
 	detail text NOT NULL, -- 执行说明：详细的执行过程
@@ -1294,7 +1309,7 @@ COMMENT ON COLUMN public.scene_automation_log.execution_result IS '执行状态S
 
 -- DROP TABLE public.scene_log;
 
-CREATE TABLE public.scene_log (
+CREATE TABLE IF NOT EXISTS public.scene_log (
 	scene_id varchar(36) NOT NULL, -- 场景id（关联删除）
 	executed_at timestamptz(6) NOT NULL, -- 执行时间
 	detail text NOT NULL, -- 执行说明：详细的执行过程
@@ -1320,7 +1335,7 @@ COMMENT ON COLUMN public.scene_log.execution_result IS '执行状态S：成功
 
 -- DROP TABLE public.sys_dict_language;
 
-CREATE TABLE public.sys_dict_language (
+CREATE TABLE IF NOT EXISTS public.sys_dict_language (
 	id varchar(36) NOT NULL, -- 主键ID
 	dict_id varchar(36) NOT NULL, -- sys_dict.id
 	language_code varchar(36) NOT NULL, -- 语言代码
@@ -1348,7 +1363,7 @@ COMMENT ON CONSTRAINT sys_dict_language_dict_id_language_code_key ON public.sys_
 
 -- DROP TABLE public.data_scripts;
 
-CREATE TABLE public.data_scripts (
+CREATE TABLE IF NOT EXISTS public.data_scripts (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(99) NOT NULL, -- 名称
 	device_config_id varchar(36) NOT NULL, -- 设备配置id 关联删除
@@ -1385,7 +1400,7 @@ COMMENT ON COLUMN public.data_scripts.remark IS '备注';
 
 -- DROP TABLE public.devices;
 
-CREATE TABLE public.devices (
+CREATE TABLE IF NOT EXISTS public.devices (
 	id varchar(36) NOT NULL, -- Id
 	"name" varchar(255) NULL, -- 设备名称
 	voucher varchar(500) NOT NULL DEFAULT ''::character varying, -- 凭证
@@ -1457,7 +1472,7 @@ COMMENT ON COLUMN public.devices.description IS '描述';
 
 -- DROP TABLE public.event_datas;
 
-CREATE TABLE public.event_datas (
+CREATE TABLE IF NOT EXISTS public.event_datas (
 	id varchar(36) NOT NULL,
 	device_id varchar(36) NOT NULL, -- 设备id（外键-关联删除）
 	identify varchar(255) NOT NULL, -- 数据标识符
@@ -1482,7 +1497,7 @@ COMMENT ON COLUMN public.event_datas."data" IS '数据';
 
 -- DROP TABLE public.ota_upgrade_task_details;
 
-CREATE TABLE public.ota_upgrade_task_details (
+CREATE TABLE IF NOT EXISTS public.ota_upgrade_task_details (
 	id varchar(36) NOT NULL, -- Id
 	ota_upgrade_task_id varchar(200) NOT NULL, -- 升级任务id（外键关联删除）
 	device_id varchar(200) NOT NULL, -- 设备id（外键阻止删除）
@@ -1512,7 +1527,7 @@ COMMENT ON COLUMN public.ota_upgrade_task_details.status_description IS '状态�
 
 -- DROP TABLE public.r_group_device;
 
-CREATE TABLE public.r_group_device (
+CREATE TABLE IF NOT EXISTS public.r_group_device (
 	group_id varchar(36) NOT NULL,
 	device_id varchar(36) NOT NULL,
 	tenant_id varchar(36) NOT NULL,
@@ -1528,7 +1543,7 @@ CREATE TABLE public.r_group_device (
 
 -- DROP TABLE public.telemetry_set_logs;
 
-CREATE TABLE public.telemetry_set_logs (
+CREATE TABLE IF NOT EXISTS public.telemetry_set_logs (
 	id varchar(36) NOT NULL,
 	device_id varchar(36) NOT NULL, -- 设备id（外键-关联删除）
 	operation_type varchar(255) NULL, -- 操作类型1-手动操作 2-自动触发
@@ -1560,7 +1575,7 @@ COMMENT ON COLUMN public.telemetry_set_logs.description IS '描述';
 
 -- DROP TABLE public.attribute_datas;
 
-CREATE TABLE public.attribute_datas (
+CREATE TABLE IF NOT EXISTS public.attribute_datas (
 	id varchar(36) NOT NULL,
 	device_id varchar(36) NOT NULL, -- 设备id（外键-关联删除）
 	"key" varchar(255) NOT NULL, -- 数据标识符
@@ -1586,7 +1601,7 @@ COMMENT ON COLUMN public.attribute_datas.ts IS '上报时间';
 
 -- DROP TABLE public.attribute_set_logs;
 
-CREATE TABLE public.attribute_set_logs (
+CREATE TABLE IF NOT EXISTS public.attribute_set_logs (
 	id varchar(36) NOT NULL,
 	device_id varchar(36) NOT NULL, -- 设备id（外键-关联删除）
 	operation_type varchar(255) NULL, -- 操作类型1-手动操作 2-自动触发
@@ -1622,7 +1637,7 @@ COMMENT ON COLUMN public.attribute_set_logs.description IS '描述';
 
 -- DROP TABLE public.command_set_logs;
 
-CREATE TABLE public.command_set_logs (
+CREATE TABLE IF NOT EXISTS public.command_set_logs (
 	id varchar(36) NOT NULL,
 	device_id varchar(36) NOT NULL, -- 设备id（外键-关联删除）
 	operation_type varchar(255) NULL, -- 操作类型1-手动操作 2-自动触发
@@ -1665,7 +1680,7 @@ INSERT INTO public.sys_dict_language (id, dict_id, language_code, "translation")
 INSERT INTO public.sys_function (id, "name", enable_flag, description, remark) VALUES('function_1', 'use_captcha', 'disable', '验证码登陆', NULL);
 INSERT INTO public.sys_function (id, "name", enable_flag, description, remark) VALUES('function_2', 'enable_reg', 'disable', '租户注册', NULL);
 
--- INSERT INTO public.users (id, "name", phone_number, email, status, authority, "password", tenant_id, remark, additional_info, created_at, updated_at) VALUES('00000000-4fe9-b409-67c3-000000000000', 'admin', '+86 13100000000', 'super@super.cn', 'N', 'SYS_ADMIN', '$2a$10$dPDIqoOEt.rSDwEWsSHCqe9/PJEsnWvRK76DwXVZUFM/7J0D3ikfq', 'aaaaaa', 'dolor', '{}'::json, NULL, '2024-03-06 14:52:52.390');
+INSERT INTO public.users (id, "name", phone_number, email, status, authority, "password", tenant_id, remark, additional_info, created_at, updated_at) VALUES('00000000-4fe9-b409-67c3-000000000000', 'admin', '+86 13100000000', 'super@super.cn', 'N', 'SYS_ADMIN', '$2a$10$dPDIqoOEt.rSDwEWsSHCqe9/PJEsnWvRK76DwXVZUFM/7J0D3ikfq', 'aaaaaa', 'dolor', '{}'::json, NULL, '2024-03-06 14:52:52.390');
 INSERT INTO public.users (id, "name", phone_number, email, status, authority, "password", tenant_id, remark, additional_info, created_at, updated_at) VALUES('11111111-4fe9-b409-67c3-111111111111', 'Tenant', '+86 13166666666', 'tenant@tenant.cn', 'N', 'TENANT_ADMIN', '$2a$10$zvPRDn0okgLt1t/OjQ.K5eZjGc3Mva7tmA8VlASsP8flfv0PwEz76', 'd616bcbb', '', '{}'::json, '2024-06-05 16:48:11.097', '2024-06-05 16:48:11.097');
 
 INSERT INTO public.data_policy (id, data_type, retention_days, last_cleanup_time, last_cleanup_data_time, enabled, remark) VALUES('b', '2', 15, '2024-06-05 10:02:00.003', '2024-05-21 10:02:00.003', '1', '');
